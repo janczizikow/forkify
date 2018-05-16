@@ -1,4 +1,5 @@
 import Search from './models/Search';
+import Recipe from './models/Recipe';
 import * as searchView from './views/searchView';
 import { elements, renderLoader, clearLoader } from './views/base';
 /* Global State of the app
@@ -9,6 +10,9 @@ import { elements, renderLoader, clearLoader } from './views/base';
  */
 const state = {};
 
+/**
+ * SEARCH CONTROLLER
+ */
 const controlSearch = async () => {
   // 1) Get query from view
   const query = searchView.getInput();
@@ -22,12 +26,20 @@ const controlSearch = async () => {
     searchView.clearResults(); // clear results
     renderLoader(elements.searchRes);
 
-    // 4) Search for recipes;
-    await state.search.getResults();
+    try {
+      // 4) Search for recipes;
+      await state.search.getResults();
 
-    // 5) Render results in UI
-    clearLoader();
-    searchView.renderResults(state.search.result);
+      // 5) Render results in UI
+      clearLoader();
+      searchView.renderResults(state.search.result);
+
+    } catch(err) {
+      console.error(err);
+      alert('Ups... Something went wrong!');
+    } finally {
+      clearLoader();
+    }
   }
 };
 
@@ -45,3 +57,39 @@ elements.searchResPages.addEventListener('click', e => {
     searchView.renderResults(state.search.result, goToPage);
   }
 });
+
+/**
+ * RECIPE CONTROLLER
+ */
+const controlRecipe = async () => {
+  // Get the ID from url
+  const id = window.location.hash.replace('#', '');
+  console.log(id);
+
+  if (id) {
+
+    // Prepare UI for changes
+
+    // Create new recipe object
+    state.recipe = new Recipe(id);
+
+    try {
+      // Get the recipe data
+      await state.recipe.getRecipe();
+      console.log(state.recipe.ingredients);
+      state.recipe.parseIngredients();
+
+      // Calculate servings and time
+      state.recipe.calcTime();
+      state.recipe.calcServings();
+
+      // Render the recipe
+      console.log(state.recipe);
+    } catch(err) {
+      console.error(err);
+      alert('Error processing recipe!');
+    }
+  }
+};
+
+['hashchange', 'load'].forEach(event => window.addEventListener(event, controlRecipe));
