@@ -14,7 +14,7 @@ import { elements, renderLoader, clearLoader } from './views/base';
  * - Liked recipes
  */
 const state = {};
-window.state = state; // FIXME: testing
+
 /**
  * SEARCH CONTROLLER
  */
