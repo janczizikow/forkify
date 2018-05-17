@@ -14,7 +14,7 @@ import { elements, renderLoader, clearLoader } from './views/base';
  * - Liked recipes
  */
 const state = {};
-
+window.state = state;
 /**
  * SEARCH CONTROLLER
  */
@@ -103,7 +103,6 @@ const controlRecipe = async () => {
   }
 };
 
-['hashchange', 'load'].forEach(event => window.addEventListener(event, controlRecipe));
 
 /**
  * LIST CONTROLLER
@@ -112,32 +111,13 @@ const controlList = () => {
   // create a new list if there is none yet
   if (!state.list) {
     state.list = new List();
-
-    //  Add each ingredients to the list and UI
-    state.recipe.ingredients.forEach(el => {
-      const item = state.list.addItem(el.count, el.ingredient, el.unit);
-      listView.renderItem(item);
-    });
   }
+  //  Add each ingredients to the list and UI
+  state.recipe.ingredients.forEach(el => {
+    const item = state.list.addItem(el.count, el.ingredient, el.unit);
+    listView.renderItem(item);
+  });
 };
-
-// Handle delete and update list item events
-elements.shoppingList.addEventListener('click', e => {
-  const target = e.target || e.srcElement;
-  const id = target.closest('.shopping__item').dataset.itemid;
-
-  // Handle the delete button
-  if ( target.matches('.shopping__delete, .shopping__delete *') ) {
-    // Delete from state
-    state.list.removeItem(id);
-    // Delete from UI
-    listView.removeItem(id);
-  // Handle the count update
-  } else if ( target.matches('.shopping__count--value') ) {
-    const val = parseFloat(target.value);
-    state.list.updateCount(id, val);
-  }
-});
 
 /**
  * LIKES CONTROLLER
@@ -181,15 +161,37 @@ const controlLike = () => {
 // Restore liked recipes on page load
 window.addEventListener('load', () => {
   state.likes = new Likes();
-
+  state.list = new List();
   // Restore likes
   state.likes.loadData();
+  state.list.loadData();
 
   // Render the like menu
   likesView.toggleLikeMenu(state.likes.getNumLikes());
 
   // Render the extisting likes
   state.likes.likes.forEach( like => likesView.renderLike(like) );
+  state.list.items.forEach( item => listView.renderItem(item) );
+});
+
+['hashchange', 'load'].forEach(event => window.addEventListener(event, controlRecipe));
+
+// Handle delete and update list item events
+elements.shoppingList.addEventListener('click', e => {
+  const target = e.target || e.srcElement;
+  const id = target.closest('.shopping__item').dataset.itemid;
+
+  // Handle the delete button
+  if ( target.matches('.shopping__delete, .shopping__delete *') ) {
+    // Delete from state
+    state.list.removeItem(id);
+    // Delete from UI
+    listView.removeItem(id);
+  // Handle the count update
+  } else if ( target.matches('.shopping__count--value') ) {
+    const val = parseFloat(target.value);
+    state.list.updateCount(id, val);
+  }
 });
 
 // Handling recipe button clicks
